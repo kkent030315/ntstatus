@@ -99,8 +99,7 @@ jobs:
                 repo: context.repo.repo,
                 tag_name: `${{ steps.version.outputs.releaseVersion }}`,
                 name: `${{ steps.version.outputs.releaseVersion }}`,
-                body: `
-            # 📣 Releasing v${{ steps.version.outputs.releaseVersion }}
+                body: `# 📣 Releasing v${{ steps.version.outputs.releaseVersion }}
             ${changelog}
             ---
             <details>
