@@ -1,7 +1,5 @@
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkkent030315%2Fntstatus.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkkent030315%2Fntstatus?ref=badge_shield)
+[![GitGuardian scan](https://github.com/kkent030315/ntstatus/actions/workflows/gitguardian.yml/badge.svg)](https://github.com/kkent030315/ntstatus/actions/workflows/gitguardian.yml)
 ![crates.io](https://img.shields.io/crates/v/ntstatus.svg?label=crates.io:ntstatus)
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkkent030315%2Fntstatus.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkkent030315%2Fntstatus?ref=badge_large)
 
 # ntstatus
 
