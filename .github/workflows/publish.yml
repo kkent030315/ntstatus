@@ -1,0 +1,127 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+
+env:
+  RUST_CACHE_GUID: '65563088-aab0-4cae-8300-60357a37fc04'
+
+jobs:
+  publish:
+    name: Publish
+
+    strategy:
+      matrix:
+        os: [windows-latest]
+        rust_toolchain: [stable]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust_toolchain }}
+          components: rust-src
+          override: true
+
+      - name: cache rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+          shared-key: ${{ env.RUST_CACHE_GUID }}
+
+      - name: install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: cargo audit
+        uses: gh640/command-result-action@v1
+        id: cargo_audit
+        with:
+          command: 'cargo audit'
+          cwd: '.'
+
+      - name: remove ansi color escape sequences
+        uses: marcransome/remove-ansi-colors@v1
+        id: cargo_audit_escaped
+        with:
+          colored: ${{ steps.cargo_audit.outputs.stdout }}
+
+      - name: publish
+        uses: gh640/command-result-action@v1
+        id: cargo_publish
+        with:
+          command: 'cargo publish --token ${{ secrets.CRATES_TOKEN }} -p ntstatus'
+
+      - name: remove ansi color escape sequences
+        uses: marcransome/remove-ansi-colors@v1
+        id: cargo_publish_escaped_r
+        with:
+          colored: ${{ steps.cargo_publish.outputs.stdout }}
+
+      - name: lookup release version
+        id: version
+        uses: thebongy/version-check@v1
+        with:
+          file: './Cargo.toml'
+
+      - name: tag action
+        id: tag
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: '${{ secrets.GITHUB_TOKEN }}'
+          custom_tag: '${{ steps.version.outputs.releaseVersion }}'
+          tag_prefix: ''
+
+      - name: push tag
+        run: git push origin --tags
+
+      - name: generate changelog
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: '${{ github.token }}'
+          tag: '${{ steps.version.outputs.releaseVersion }}'
+          writeToFile: false
+          includeInvalidCommits: true
+
+      - name: encode changelog
+        id: changelog_encoded
+        uses: kkent030315/actions-base64-encode@main
+        with:
+          data: ${{ steps.changelog.outputs.changelog }}
+
+      - name: create release
+        id: release
+        uses: actions/github-script@v4
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+          script: |
+            const encoded = '${{ steps.changelog_encoded.outputs.result }}';
+            const changelog = Buffer.from(encoded, 'base64').toString('utf8');
+            const response = await octokit.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: `${{ steps.version.outputs.releaseVersion }}`,
+                name: `${{ steps.version.outputs.releaseVersion }}`,
+                body: `
+            # 📣 Releasing v${{ steps.version.outputs.releaseVersion }}
+            ${changelog}
+            ---
+            <details>
+            <summary>Cargo Audit</summary>
+
+            ```
+            ${{ steps.cargo_audit_escaped.outputs.uncolored }}
+            ```
+
+            </details>`,
+                draft: false,
+                prerelease: false
+            });
+            return response.data.number
