@@ -53,7 +53,8 @@ jobs:
           colored: ${{ steps.cargo_audit.outputs.stdout }}
 
       - name: publish
-        run: 'cargo publish --token ${{ secrets.CRATES_TOKEN }} -p ntstatus'
+        run: |
+          cargo publish --token ${{ secrets.CRATES_TOKEN }} -p ntstatus
 
       - name: lookup release version
         id: version
