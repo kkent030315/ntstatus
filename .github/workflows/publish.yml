@@ -53,16 +53,7 @@ jobs:
           colored: ${{ steps.cargo_audit.outputs.stdout }}
 
       - name: publish
-        uses: gh640/command-result-action@v1
-        id: cargo_publish
-        with:
-          command: 'cargo publish --token ${{ secrets.CRATES_TOKEN }} -p ntstatus'
-
-      - name: remove ansi color escape sequences
-        uses: marcransome/remove-ansi-colors@v1
-        id: cargo_publish_escaped_r
-        with:
-          colored: ${{ steps.cargo_publish.outputs.stdout }}
+        run: 'cargo publish --token ${{ secrets.CRATES_TOKEN }} -p ntstatus'
 
       - name: lookup release version
         id: version
