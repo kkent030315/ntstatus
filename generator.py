@@ -3,6 +3,10 @@ def main() -> None:
     with open(file='./src/ntstatus.rs', mode='w+', encoding='utf-8') as output_file:
       with open(file='./src/test.rs', mode='w+', encoding='utf-8') as test_file:
         output_file.write("""use num_enum::TryFromPrimitive;\n
+
+#[cfg(not(feature = "std"))]
+use core::fmt::Debug;
+
 #[derive(Debug, TryFromPrimitive)]
 #[repr(u32)]
 #[allow(non_camel_case_types)]
