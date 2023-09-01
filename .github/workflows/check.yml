@@ -1,0 +1,51 @@
+name: Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  RUST_CACHE_GUID: '767136dc-e3a2-41fb-8874-1bd558953071'
+
+jobs:
+  check:
+    name: Check
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, ubuntu-latest]
+        rust_toolchain: [stable]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: decide if ref to check out
+        uses: haya14busa/action-cond@v1
+        id: condval
+        with:
+          cond: ${{ github.event_name == 'pull_request_target' }}
+          if_true: refs/pull/${{ github.event.pull_request.number }}/merge
+          if_false: ${{ github.ref }}
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.condval.outputs.value }}
+
+      - name: setup rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust_toolchain }}
+          components: rust-src
+          override: true
+
+      - name: rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ${{ env.RUST_CACHE_GUID }}
+
+      - name: build
+        run: cargo build
