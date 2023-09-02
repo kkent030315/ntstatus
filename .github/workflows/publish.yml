@@ -58,7 +58,7 @@ jobs:
 
       - name: publish
         run: |
-          cargo publish --token ${{ secrets.CRATES_TOKEN }} -p ntstatus
+          cargo publish -p ntstatus
 
       - name: lookup release version
         id: version
