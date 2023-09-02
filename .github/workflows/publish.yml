@@ -52,6 +52,10 @@ jobs:
         with:
           colored: ${{ steps.cargo_audit.outputs.stdout }}
 
+      - name: cargo login
+        run: |
+          cargo login ${{ secrets.CRATES_TOKEN }}
+
       - name: publish
         run: |
           cargo publish --token ${{ secrets.CRATES_TOKEN }} -p ntstatus
